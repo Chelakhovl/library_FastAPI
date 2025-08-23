@@ -93,22 +93,13 @@ class BookUpdate(BaseModel):
 
 
 class BookOut(BaseModel):
-    """
-    Schema for returning book details in API responses.
-    Includes nested author info.
-    """
-
     id: int
     title: str
+    author: str
     genre: GenreLiteral
     published_year: int
-    created_at: datetime
-    updated_at: datetime
-    author_id: int
-    author: AuthorOut
-
-    class Config:
-        orm_mode = True
+    created_at: str
+    updated_at: str
 
 
 class BooksPage(BaseModel):

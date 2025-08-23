@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File, Query, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from typing import Optional
 from app.db.session import get_session
@@ -20,7 +20,9 @@ router = APIRouter(prefix="/books", tags=["books"])
 )
 @rate_mutate
 async def create_book(
-    payload: BookCreate, session: AsyncSession = Depends(get_session)
+    request: Request,
+    payload: BookCreate,
+    session: AsyncSession = Depends(get_session),
 ):
     try:
         return await repo.create_book(
@@ -42,6 +44,7 @@ async def create_book(
 )
 @rate_get
 async def list_books(
+    request: Request,
     session: AsyncSession = Depends(get_session),
     title: Optional[str] = Query(None),
     author: Optional[str] = Query(None),
@@ -75,6 +78,52 @@ async def list_books(
     }
 
 
+@router.post(
+    "/import",
+    dependencies=[Depends(get_current_user)],
+    summary="Import books",
+    description="Bulk import books from JSON or CSV file.",
+)
+@rate_mutate
+async def import_books(
+    request: Request,
+    file: UploadFile = File(...),
+    session: AsyncSession = Depends(get_session),
+):
+    return await books_service.import_books(file, session)
+
+
+@router.get(
+    "/export",
+    summary="Export books",
+    description="Export all books in JSON or CSV format.",
+)
+@rate_get
+async def export_books(
+    request: Request,
+    format: str = Query("json", regex="^(json|csv)$"),
+    session: AsyncSession = Depends(get_session),
+):
+    return await books_service.export_books(format, session)
+
+
+@router.get(
+    "/recommendations",
+    response_model=list[BookOut],
+    summary="Get book recommendations",
+    description="Recommend books based on genre or author.",
+)
+@rate_get
+async def recommend_books(
+    request: Request,
+    by: str = Query(..., regex="^(genre|author)$"),
+    value: str = Query(...),
+    limit: int = Query(5, ge=1, le=50),
+    session: AsyncSession = Depends(get_session),
+):
+    return await books_service.recommend_books(by, value, limit, session)
+
+
 @router.get(
     "/{book_id}",
     response_model=BookOut,
@@ -82,7 +131,11 @@ async def list_books(
     description="Retrieve a single book by its unique identifier.",
 )
 @rate_get
-async def get_book(book_id: int, session: AsyncSession = Depends(get_session)):
+async def get_book(
+    request: Request,
+    book_id: int,
+    session: AsyncSession = Depends(get_session),
+):
     book = await repo.get_book_by_id(session, book_id)
     if not book:
         raise HTTPException(status_code=404, detail="Book not found")
@@ -98,7 +151,10 @@ async def get_book(book_id: int, session: AsyncSession = Depends(get_session)):
 )
 @rate_mutate
 async def update_book(
-    book_id: int, payload: BookUpdate, session: AsyncSession = Depends(get_session)
+    request: Request,
+    book_id: int,
+    payload: BookUpdate,
+    session: AsyncSession = Depends(get_session),
 ):
     book = await repo.update_book(
         session,
@@ -120,50 +176,12 @@ async def update_book(
     description="Remove a book record by its ID.",
 )
 @rate_mutate
-async def delete_book(book_id: int, session: AsyncSession = Depends(get_session)):
+async def delete_book(
+    request: Request,
+    book_id: int,
+    session: AsyncSession = Depends(get_session),
+):
     ok = await repo.delete_book(session, book_id)
     if not ok:
         raise HTTPException(status_code=404, detail="Book not found")
     return {"status": "deleted", "id": book_id}
-
-
-@router.post(
-    "/import",
-    dependencies=[Depends(get_current_user)],
-    summary="Import books",
-    description="Bulk import books from JSON or CSV file.",
-)
-@rate_mutate
-async def import_books(
-    file: UploadFile = File(...), session: AsyncSession = Depends(get_session)
-):
-    return await books_service.import_books(file, session)
-
-
-@router.get(
-    "/export",
-    summary="Export books",
-    description="Export all books in JSON or CSV format.",
-)
-@rate_get
-async def export_books(
-    format: str = Query("json", regex="^(json|csv)$"),
-    session: AsyncSession = Depends(get_session),
-):
-    return await books_service.export_books(format, session)
-
-
-@router.get(
-    "/recommendations",
-    response_model=list[BookOut],
-    summary="Get book recommendations",
-    description="Recommend books based on genre or author.",
-)
-@rate_get
-async def recommend_books(
-    by: str = Query(..., regex="^(genre|author)$"),
-    value: str = Query(...),
-    limit: int = Query(5, ge=1, le=50),
-    session: AsyncSession = Depends(get_session),
-):
-    return await books_service.recommend_books(by, value, limit, session)

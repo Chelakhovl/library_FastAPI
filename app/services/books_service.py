@@ -5,6 +5,7 @@ from sqlalchemy import select
 from datetime import datetime
 from app.db.book import Book
 from app.db.author import Author
+from app.schemas.book import BookOut
 from app.db import repo_books as repo
 from app.core.constants import GENRES
 
@@ -57,12 +58,12 @@ async def import_books(file: UploadFile, session):
                     continue
                 try:
                     await repo.create_book(
-                        session,
-                        rec["title"],
-                        rec["author"],
-                        rec["genre"],
-                        int(rec["published_year"]),
-                    )
+                    session,
+                    title=rec["title"],
+                    author=rec["author"],
+                    genre=rec["genre"],
+                    published_year=int(rec["published_year"]),
+                )
                     created += 1
                 except Exception as e:
                     errors.append(f"row {i}: {e}")
@@ -75,10 +76,10 @@ async def import_books(file: UploadFile, session):
                 try:
                     await repo.create_book(
                         session,
-                        rec["title"],
-                        rec["author"],
-                        rec["genre"],
-                        int(rec["published_year"]),
+                        title=rec["title"],
+                        author=rec["author"],
+                        genre=rec["genre"],
+                        published_year=int(rec["published_year"]),
                     )
                     created += 1
                 except Exception as e:
@@ -133,32 +134,44 @@ async def export_books(format: str, session):
 async def recommend_books(by: str, value: str, limit: int, session):
     """
     Recommend books based on genre or author.
-
-    Args:
-        by (str): "genre" or "author"
-        value (str): search value (genre name or author name)
-        limit (int): maximum number of recommendations
-        session (AsyncSession): database session
-
-    Returns:
-        list[Book]: list of recommended Book ORM objects
-
-    Raises:
-        HTTPException(404): if no matching recommendations found
     """
     if by == "genre":
-        result = await session.execute(
-            select(Book).join(Author).where(Book.genre == value).limit(limit)
+        query = (
+            select(
+                Book.id,
+                Book.title,
+                Book.genre,
+                Book.published_year,
+                Author.id.label("author_id"),
+                Author.name.label("author"),
+                Book.created_at,
+                Book.updated_at,
+            )
+            .join(Author, Book.author_id == Author.id)
+            .where(Book.genre == value)
+            .limit(limit)
         )
     else:
-        result = await session.execute(
-            select(Book)
-            .join(Author)
+        query = (
+            select(
+                Book.id,
+                Book.title,
+                Book.genre,
+                Book.published_year,
+                Author.id.label("author_id"),
+                Author.name.label("author"),
+                Book.created_at,
+                Book.updated_at,
+            )
+            .join(Author, Book.author_id == Author.id)
             .where(Author.name.ilike(f"%{value}%"))
             .limit(limit)
         )
 
-    books = result.scalars().all()
-    if not books:
+    result = await session.execute(query)
+    rows = result.mappings().all()
+
+    if not rows:
         raise HTTPException(status_code=404, detail="No recommendations found")
-    return books
+
+    return [BookOut(**dict(r)) for r in rows]
