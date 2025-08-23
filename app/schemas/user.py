@@ -2,23 +2,38 @@ from pydantic import BaseModel, EmailStr, constr
 from datetime import datetime
 
 
-# --- Base ---
 class UserBase(BaseModel):
+    """
+    Base schema for users.
+    Contains common fields shared across other schemas.
+    """
+
     email: EmailStr
 
 
-# --- Create (реєстрація) ---
 class UserCreate(UserBase):
+    """
+    Schema for user registration.
+    Requires a valid email and password (min length 6).
+    """
+
     password: constr(min_length=6)
 
 
-# --- Login (автентифікація) ---
 class UserLogin(UserBase):
+    """
+    Schema for user authentication (login).
+    """
+
     password: str
 
 
-# --- Out (відповідь) ---
 class UserOut(UserBase):
+    """
+    Schema for returning user details in API responses.
+    Excludes password for security reasons.
+    """
+
     id: int
     created_at: datetime
 

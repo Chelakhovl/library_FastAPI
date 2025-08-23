@@ -6,6 +6,7 @@ down_revision = "0001_create_core"
 branch_labels = None
 depends_on = None
 
+
 def upgrade():
     op.add_column(
         "books",
@@ -19,6 +20,7 @@ def upgrade():
         unique=True,
         schema="public",
     )
+
 
 def downgrade():
     op.drop_index("uniq_books_title_author_year", table_name="books", schema="public")

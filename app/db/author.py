@@ -4,6 +4,12 @@ from app.db.base import Base
 
 
 class Author(Base):
+    """
+    ORM model for authors.
+
+    Represents book authors with a one-to-many relationship to books.
+    """
+
     __tablename__ = "authors"
     __table_args__ = {"schema": "public"}
 

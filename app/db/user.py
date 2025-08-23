@@ -1,7 +1,15 @@
 from sqlalchemy import Column, BigInteger, Text, TIMESTAMP, func
 from app.db.base import Base
 
+
 class User(Base):
+    """
+    ORM model for users.
+
+    Represents an application user with email, hashed password,
+    and creation timestamp.
+    """
+
     __tablename__ = "users"
     __table_args__ = {"schema": "public"}
 

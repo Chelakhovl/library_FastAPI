@@ -1,16 +1,19 @@
 from typing import Optional, Literal
 from pydantic import BaseModel, field_validator
 from datetime import datetime
-from app.schemas.author import AuthorOut  # імпортуємо готову схему автора
+from app.schemas.author import AuthorOut
 
-# жанри як Enum через Literal
 GenreLiteral = Literal["Fiction", "Non-Fiction", "Science", "History"]
 
 
-# --- Base ---
 class BookBase(BaseModel):
+    """
+    Base schema for books.
+    Defines shared fields and validation.
+    """
+
     title: str
-    author: str   # ім'я автора (для створення книги)
+    author: str
     genre: GenreLiteral
     published_year: int
 
@@ -39,13 +42,20 @@ class BookBase(BaseModel):
         return v
 
 
-# --- Create ---
 class BookCreate(BookBase):
+    """
+    Schema for creating a new book.
+    """
+
     pass
 
 
-# --- Update ---
 class BookUpdate(BaseModel):
+    """
+    Schema for updating an existing book.
+    All fields are optional.
+    """
+
     title: Optional[str] = None
     author: Optional[str] = None
     genre: Optional[GenreLiteral] = None
@@ -82,24 +92,30 @@ class BookUpdate(BaseModel):
         return v
 
 
-# --- Out (response) ---
 class BookOut(BaseModel):
+    """
+    Schema for returning book details in API responses.
+    Includes nested author info.
+    """
+
     id: int
     title: str
     genre: GenreLiteral
     published_year: int
     created_at: datetime
     updated_at: datetime
-
     author_id: int
-    author: AuthorOut  # вкладений об'єкт автора
+    author: AuthorOut
 
     class Config:
         orm_mode = True
 
 
-# --- Page for listing ---
 class BooksPage(BaseModel):
+    """
+    Schema for paginated book listings.
+    """
+
     items: list[BookOut]
     total: int
     page: int

@@ -2,8 +2,12 @@ from pydantic import BaseModel, field_validator
 from datetime import datetime
 
 
-# --- Base ---
 class AuthorBase(BaseModel):
+    """
+    Base schema for authors.
+    Used for shared fields between create, update, and output.
+    """
+
     name: str
 
     @field_validator("name")
@@ -11,22 +15,31 @@ class AuthorBase(BaseModel):
     def non_empty_name(cls, v: str) -> str:
         v = v.strip()
         if not v:
-            raise ValueError("author name must be non-empty")
+            raise ValueError("Author name must be non-empty")
         return v
 
 
-# --- Create ---
 class AuthorCreate(AuthorBase):
+    """
+    Schema for creating a new author.
+    """
+
     pass
 
 
-# --- Update ---
 class AuthorUpdate(AuthorBase):
+    """
+    Schema for updating an existing author.
+    """
+
     pass
 
 
-# --- Out (response) ---
 class AuthorOut(AuthorBase):
+    """
+    Schema for returning author details in API responses.
+    """
+
     id: int
     created_at: datetime
 

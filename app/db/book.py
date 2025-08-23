@@ -4,6 +4,13 @@ from app.db.base import Base
 
 
 class Book(Base):
+    """
+    ORM model for books.
+
+    Represents a book entity with metadata, publication year,
+    and a many-to-one relationship to its author.
+    """
+
     __tablename__ = "books"
     __table_args__ = {"schema": "public"}
 
@@ -11,12 +18,23 @@ class Book(Base):
     title = Column(Text, nullable=False)
     genre = Column(Text, nullable=False)
     published_year = Column(Integer, nullable=False)
-    created_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
-    updated_at = Column(TIMESTAMP(timezone=True), server_default=func.now(), nullable=False)
+    created_at = Column(
+        TIMESTAMP(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
+    updated_at = Column(
+        TIMESTAMP(timezone=True),
+        server_default=func.now(),
+        nullable=False,
+    )
 
-    author_id = Column(BigInteger, ForeignKey("public.authors.id", ondelete="RESTRICT"), nullable=False)
+    author_id = Column(
+        BigInteger,
+        ForeignKey("public.authors.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
 
-    # зв’язок із автором
     author = relationship("Author", back_populates="books")
 
     def __repr__(self) -> str:
