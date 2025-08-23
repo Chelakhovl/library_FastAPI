@@ -1,5 +1,5 @@
-# app/core/config.py
 from functools import lru_cache
+import os
 
 try:
     # Pydantic v2 (рекомендовано)
@@ -13,23 +13,23 @@ except ImportError:  # fallback на Pydantic v1
 if _V2:
     class Settings(BaseSettings):
         # App
-        APP_NAME: str = "Book Management System"
-        ENV: str = "dev"
-        DEBUG: bool = False
+        APP_NAME: str = os.getenv("APP_NAME", "Book Management System")
+        ENV: str = os.getenv("ENV", "dev")
+        DEBUG: bool = os.getenv("DEBUG", "false").lower() == "true"
 
         # Database (SQLAlchemy async engine)
-        DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/books_db"
-        DB_POOL_SIZE: int = 5
-        DB_MAX_OVERFLOW: int = 10
-        DB_POOL_TIMEOUT: int = 30
-        DB_POOL_RECYCLE: int = 1800  # seconds
+        DATABASE_URL: str = os.getenv("DATABASE_URL")
+        DB_POOL_SIZE: int = int(os.getenv("DB_POOL_SIZE", 5))
+        DB_MAX_OVERFLOW: int = int(os.getenv("DB_MAX_OVERFLOW", 10))
+        DB_POOL_TIMEOUT: int = int(os.getenv("DB_POOL_TIMEOUT", 30))
+        DB_POOL_RECYCLE: int = int(os.getenv("DB_POOL_RECYCLE", 1800))
 
         # Auth/JWT
-        JWT_SECRET: str = "CHANGE_ME"
-        JWT_ALG: str = "HS256"
-        ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+        JWT_SECRET: str = os.getenv("JWT_SECRET", "CHANGE_ME")
+        JWT_ALG: str = os.getenv("JWT_ALG", "HS256")
+        ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60))
 
-        # Pydantic v2 конфіг (env-файл, ігнор зайвих змінних)
+        # Pydantic v2 конфіг
         model_config = SettingsConfigDict(
             env_file=".env",
             env_file_encoding="utf-8",
@@ -38,23 +38,22 @@ if _V2:
 else:
     class Settings(BaseSettings):
         # App
-        APP_NAME: str = "Book Management System"
-        ENV: str = "dev"
-        DEBUG: bool = False
+        APP_NAME: str = os.getenv("APP_NAME", "Book Management System")
+        ENV: str = os.getenv("ENV", "dev")
+        DEBUG: bool = os.getenv("DEBUG", "false").lower() == "true"
 
         # Database (SQLAlchemy async engine)
-        DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/books_db"
-        DB_POOL_SIZE: int = 5
-        DB_MAX_OVERFLOW: int = 10
-        DB_POOL_TIMEOUT: int = 30
-        DB_POOL_RECYCLE: int = 1800  # seconds
+        DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql+asyncpg://postgres:postgres@localhost:5432/books_db")
+        DB_POOL_SIZE: int = int(os.getenv("DB_POOL_SIZE", 5))
+        DB_MAX_OVERFLOW: int = int(os.getenv("DB_MAX_OVERFLOW", 10))
+        DB_POOL_TIMEOUT: int = int(os.getenv("DB_POOL_TIMEOUT", 30))
+        DB_POOL_RECYCLE: int = int(os.getenv("DB_POOL_RECYCLE", 1800))
 
         # Auth/JWT
-        JWT_SECRET: str = "CHANGE_ME"
-        JWT_ALG: str = "HS256"
-        ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+        JWT_SECRET: str = os.getenv("JWT_SECRET", "CHANGE_ME")
+        JWT_ALG: str = os.getenv("JWT_ALG", "HS256")
+        ACCESS_TOKEN_EXPIRE_MINUTES: int = int(os.getenv("ACCESS_TOKEN_EXPIRE_MINUTES", 60))
 
-        # Pydantic v1 конфіг
         class Config:
             env_file = ".env"
             env_file_encoding = "utf-8"
@@ -62,9 +61,7 @@ else:
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
-    """Кешований сінглтон для доступу до конфігів у застосунку."""
     return Settings()
-
 
 
 settings = get_settings()

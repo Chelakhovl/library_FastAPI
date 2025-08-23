@@ -1,0 +1,17 @@
+[
+  {"title": "Clean Code", "author": "Robert C. Martin", "genre": "Science", "published_year": 2008},
+  {"title": "The Clean Coder", "author": "Robert C. Martin", "genre": "Science", "published_year": 2011},
+  {"title": "Clean Architecture", "author": "Robert C. Martin", "genre": "Science", "published_year": 2017},
+  {"title": "The Pragmatic Programmer", "author": "Andrew Hunt", "genre": "Science", "published_year": 1999},
+  {"title": "Domain-Driven Design", "author": "Eric Evans", "genre": "Science", "published_year": 2003},
+  {"title": "Sapiens", "author": "Yuval Noah Harari", "genre": "History", "published_year": 2011},
+  {"title": "Homo Deus", "author": "Yuval Noah Harari", "genre": "History", "published_year": 2015},
+  {"title": "A Brief History of Time", "author": "Stephen Hawking", "genre": "Science", "published_year": 1988},
+  {"title": "1984", "author": "George Orwell", "genre": "Fiction", "published_year": 1949},
+  {"title": "To Kill a Mockingbird", "author": "Harper Lee", "genre": "Fiction", "published_year": 1960},
+  {"title": "Guns, Germs, and Steel", "author": "Jared Diamond", "genre": "Non-Fiction", "published_year": 1997},
+  {"title": "The Selfish Gene", "author": "Richard Dawkins", "genre": "Science", "published_year": 1976},
+  {"title": "Thinking, Fast and Slow", "author": "Daniel Kahneman", "genre": "Non-Fiction", "published_year": 2011},
+  {"title": "The Art of War", "author": "Sun Tzu", "genre": "History", "published_year": 1910},
+  {"title": "Foundation", "author": "Isaac Asimov", "genre": "Fiction", "published_year": 1951}
+]
