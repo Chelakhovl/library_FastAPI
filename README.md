@@ -43,8 +43,8 @@ JWT_ALG	JWT algorithm	HS256
 ACCESS_TOKEN_EXPIRE_MINUTES	JWT expiry (minutes)	60
 🏃‍♂️ Running Locally
 Clone repo
-git clone https://github.com/your-username/book-management-system.git
-cd book-management-system
+git clone https://github.com/Chelakhovl/library_FastAPI.git
+cd library_FastAPI
 Create venv & install deps
 python3 -m venv .venv
 source .venv/bin/activate
