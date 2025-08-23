@@ -33,14 +33,6 @@ Copy `.env.example` to `.env` and adjust values:
 
 ```bash
 cp .env.example .env
-Variable	Description	Example
-ENV	Environment (dev/prod)	dev
-DEBUG	Debug mode	true
-DATABASE_URL	PostgreSQL DSN	postgresql+asyncpg://user:pass@localhost:5432/books_db
-DB_POOL_SIZE	DB connection pool size	5
-JWT_SECRET	Secret for JWT signing	changeme123
-JWT_ALG	JWT algorithm	HS256
-ACCESS_TOKEN_EXPIRE_MINUTES	JWT expiry (minutes)	60
 🏃‍♂️ Running Locally
 Clone repo
 git clone https://github.com/Chelakhovl/library_FastAPI.git
