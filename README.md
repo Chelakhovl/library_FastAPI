@@ -25,35 +25,46 @@ Includes CRUD operations, import/export (JSON & CSV), JWT authentication, rate l
 - PostgreSQL **14+**  
 - Virtual environment (`venv` or `conda`)  
 
----
-
-## ⚙️ Environment Variables
-
-Copy `.env.example` to `.env` and adjust values:
-
-cp .env.example .env
 
 ---
 
 ## 🏃‍♂️ Running Locally
 
-## Clone repo
-$ git clone https://github.com/Chelakhovl/library_FastAPI.git
-$ cd library_FastAPI
+### 1. Clone repo
 
-## Create venv & install dependencies
-$ python3 -m venv .venv
-$ source .venv/bin/activate
-$ pip install -r requirements.txt
+$ git clone https://github.com/Chelakhovl/library_FastAPI.git  
+$ cd library_FastAPI  
 
-## Set up database
-$ createdb books_db
+### 2. Create venv & install dependencies
 
-## Run migrations
-$ alembic upgrade head
+$ python3 -m venv .venv  
+$ source .venv/bin/activate  
+$ pip install -r requirements.txt  
 
-## Run app
-$ uvicorn app.main:app --reload
+### 3. Environment Variables
+
+Copy `.env.example` to `.env` and adjust values:  
+
+$ cp .env.example .env  
+
+
+
+### 4. Set up database and test database
+
+$ createdb your_db  
+$ createdb your_db_test 
+
+Edit `.env` and set database URLs: 
+DATABASE_URL=postgresql+asyncpg://postgres:password@localhost:5432/your_db
+DATABASE_TEST_URL=postgresql+asyncpg://postgres:password@localhost:5432/your_db_test 
+
+### 5. Install database
+
+$ psql your_db < upgrade.sql  
+
+### 6. Run app
+
+$ python -m uvicorn app.main:app --reload  
 
 ---
 
