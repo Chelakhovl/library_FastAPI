@@ -9,8 +9,8 @@ def _sort_clause(sort_by: str, sort_order: str) -> str:
     Build a safe ORDER BY clause for book queries.
 
     Args:
-        sort_by (str): The field to sort by ("title", "author", "published_year").
-        sort_order (str): The sort direction ("asc" or "desc").
+        sort_by (str): Field to sort by. Allowed: "title", "author", "published_year".
+        sort_order (str): Sort direction ("asc" or "desc").
 
     Returns:
         str: SQL ORDER BY clause.
@@ -24,6 +24,31 @@ def _sort_clause(sort_by: str, sort_order: str) -> str:
     return f"ORDER BY b.title {so}, b.id ASC"
 
 
+async def _get_or_create_author(session: AsyncSession, name: str) -> int:
+    """
+    Get an author's ID by name or create a new author if not exists.
+
+    Args:
+        session (AsyncSession): Active database session.
+        name (str): Author name.
+
+    Returns:
+        int: ID of the author.
+    """
+    res = await session.execute(
+        text("SELECT id FROM authors WHERE lower(name)=lower(:n)"),
+        {"n": name.strip()},
+    )
+    row = res.first()
+    if row:
+        return row.id
+    res = await session.execute(
+        text("INSERT INTO authors(name) VALUES(:n) RETURNING id"),
+        {"n": name.strip()},
+    )
+    return res.scalar_one()
+
+
 async def create_book(
     session: AsyncSession,
     *,
@@ -33,14 +58,19 @@ async def create_book(
     published_year: int,
 ) -> dict:
     """
-    Create a new book record. Automatically inserts or fetches the author.
+    Create a new book record. Automatically fetches or creates the author.
+
+    Args:
+        session (AsyncSession): Active database session.
+        title (str): Book title.
+        author (str): Author name.
+        genre (str): Book genre.
+        published_year (int): Year of publication.
 
     Returns:
-        dict: Created book record.
+        dict: Created book record with fields.
     """
-    q = text("SELECT author_get_or_create(:author) AS author_id")
-    res = await session.execute(q, {"author": author})
-    author_id = res.scalar_one()
+    author_id = await _get_or_create_author(session, author)
 
     q2 = text(
         """
@@ -48,7 +78,7 @@ async def create_book(
         VALUES (:title, :author_id, :genre, :year)
         RETURNING id, title, :author as author, genre, published_year,
                   created_at::text, updated_at::text
-    """
+        """
     )
     row = (
         (
@@ -74,8 +104,12 @@ async def get_book_by_id(session: AsyncSession, book_id: int) -> Optional[dict]:
     """
     Fetch a book by its ID.
 
+    Args:
+        session (AsyncSession): Active database session.
+        book_id (int): ID of the book.
+
     Returns:
-        dict: Book record, or None if not found.
+        dict | None: Book record if found, otherwise None.
     """
     q = text(
         """
@@ -84,7 +118,7 @@ async def get_book_by_id(session: AsyncSession, book_id: int) -> Optional[dict]:
         FROM books b
         JOIN authors a ON a.id = b.author_id
         WHERE b.id = :id
-    """
+        """
     )
     res = await session.execute(q, {"id": book_id})
     row = res.mappings().first()
@@ -93,7 +127,11 @@ async def get_book_by_id(session: AsyncSession, book_id: int) -> Optional[dict]:
 
 async def delete_book(session: AsyncSession, book_id: int) -> bool:
     """
-    Delete a book by its ID.
+    Delete a book by ID.
+
+    Args:
+        session (AsyncSession): Active database session.
+        book_id (int): ID of the book to delete.
 
     Returns:
         bool: True if deleted, False if not found.
@@ -115,17 +153,21 @@ async def update_book(
 ) -> Optional[dict]:
     """
     Update book details. Supports partial updates.
-    If no fields provided, returns the current book record.
+
+    Args:
+        session (AsyncSession): Active database session.
+        book_id (int): ID of the book to update.
+        title (str, optional): New book title.
+        author (str, optional): New author name.
+        genre (str, optional): New book genre.
+        published_year (int, optional): New published year.
 
     Returns:
-        dict: Updated book record, or None if not found.
+        dict | None: Updated book record, or None if not found.
     """
     author_id = None
     if author is not None:
-        res = await session.execute(
-            text("SELECT author_get_or_create(:a) AS author_id"), {"a": author}
-        )
-        author_id = res.scalar_one()
+        author_id = await _get_or_create_author(session, author)
 
     sets = []
     params = {"id": book_id}
@@ -151,7 +193,7 @@ async def update_book(
         SET {", ".join(sets)}, updated_at = NOW()
         WHERE id = :id
         RETURNING id
-    """
+        """
     )
     res = await session.execute(q, params)
     if res.rowcount == 0:
@@ -178,20 +220,21 @@ async def list_books(
     List books with filters, pagination, and sorting.
 
     Args:
-        title (str, optional): Filter by title (LIKE).
+        session (AsyncSession): Active database session.
+        title (str, optional): Filter by book title (LIKE).
         author (str, optional): Filter by author name (LIKE).
         genre (str, optional): Filter by genre.
         year_from (int, optional): Minimum published year.
         year_to (int, optional): Maximum published year.
-        page (int): Page number.
+        page (int): Page number (1-based).
         page_size (int): Number of records per page.
-        sort_by (str): Sort field.
-        sort_order (str): Sort direction.
+        sort_by (str): Sort field ("title", "author", "published_year").
+        sort_order (str): Sort direction ("asc" or "desc").
 
     Returns:
         dict: {
-            "items": [list of book dicts],
-            "total": total_count
+            "items": list of book dicts,
+            "total": total count
         }
     """
     filters = []
@@ -226,7 +269,7 @@ async def list_books(
         {where}
         {order_clause}
         {limit_offset}
-    """
+        """
     )
     rows = (await session.execute(q_items, params)).mappings().all()
 
@@ -235,7 +278,7 @@ async def list_books(
         SELECT COUNT(*) FROM books b
         JOIN authors a ON a.id = b.author_id
         {where}
-    """
+        """
     )
     total = (await session.execute(q_count, params)).scalar_one()
     return {"items": [dict(r) for r in rows], "total": int(total)}

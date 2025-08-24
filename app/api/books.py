@@ -95,6 +95,7 @@ async def import_books(
 
 @router.get(
     "/export",
+    dependencies=[Depends(get_current_user)],
     summary="Export books",
     description="Export all books in JSON or CSV format.",
 )

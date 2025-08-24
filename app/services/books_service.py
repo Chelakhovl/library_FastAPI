@@ -1,7 +1,7 @@
 import csv, io, json
 from fastapi import UploadFile, HTTPException
 from fastapi.responses import JSONResponse, StreamingResponse
-from sqlalchemy import select
+from sqlalchemy import select, func, String
 from datetime import datetime
 from app.db.book import Book
 from app.db.author import Author
@@ -58,12 +58,12 @@ async def import_books(file: UploadFile, session):
                     continue
                 try:
                     await repo.create_book(
-                    session,
-                    title=rec["title"],
-                    author=rec["author"],
-                    genre=rec["genre"],
-                    published_year=int(rec["published_year"]),
-                )
+                        session,
+                        title=rec["title"],
+                        author=rec["author"],
+                        genre=rec["genre"],
+                        published_year=int(rec["published_year"]),
+                    )
                     created += 1
                 except Exception as e:
                     errors.append(f"row {i}: {e}")
@@ -132,9 +132,6 @@ async def export_books(format: str, session):
 
 
 async def recommend_books(by: str, value: str, limit: int, session):
-    """
-    Recommend books based on genre or author.
-    """
     if by == "genre":
         query = (
             select(
@@ -144,8 +141,8 @@ async def recommend_books(by: str, value: str, limit: int, session):
                 Book.published_year,
                 Author.id.label("author_id"),
                 Author.name.label("author"),
-                Book.created_at,
-                Book.updated_at,
+                func.cast(Book.created_at, String).label("created_at"),
+                func.cast(Book.updated_at, String).label("updated_at"),
             )
             .join(Author, Book.author_id == Author.id)
             .where(Book.genre == value)
@@ -160,8 +157,8 @@ async def recommend_books(by: str, value: str, limit: int, session):
                 Book.published_year,
                 Author.id.label("author_id"),
                 Author.name.label("author"),
-                Book.created_at,
-                Book.updated_at,
+                func.cast(Book.created_at, String).label("created_at"),
+                func.cast(Book.updated_at, String).label("updated_at"),
             )
             .join(Author, Book.author_id == Author.id)
             .where(Author.name.ilike(f"%{value}%"))

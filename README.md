@@ -118,6 +118,14 @@ $ curl -X POST http://localhost:8000/api/books/import \
 $ curl -X GET "http://localhost:8000/api/books/export?format=csv" \
   -H "Authorization: Bearer $TOKEN" -OJ
 
+## Pagination (page=1, page_size=2)
+$ curl -X GET "http://localhost:8000/api/books?page=1&page_size=2&sort_by=title&sort_order=asc" \
+  -H "Authorization: Bearer $TOKEN"
+
+## Sorting by year (DESC)
+$ curl -X GET "http://localhost:8000/api/books?page=1&page_size=5&sort_by=published_year&sort_order=desc" \
+  -H "Authorization: Bearer $TOKEN"
+
 ## Recommendations
 $ curl -X GET "http://localhost:8000/api/books/recommendations?by=genre&value=Fiction&limit=3" \
   -H "Authorization: Bearer $TOKEN"

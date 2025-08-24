@@ -3,6 +3,7 @@ from fastapi import FastAPI
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from slowapi.errors import RateLimitExceeded
+from slowapi.middleware import SlowAPIMiddleware
 
 from app.api.router import api_router
 from app.core.config import settings
@@ -39,6 +40,7 @@ app = FastAPI(
 )
 
 app.state.limiter = limiter
+app.add_middleware(SlowAPIMiddleware)
 
 
 app.add_exception_handler(StarletteHTTPException, http_exception_handler)

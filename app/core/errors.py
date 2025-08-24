@@ -33,9 +33,18 @@ async def validation_exception_handler(request: Request, exc: RequestValidationE
     Returns:
         JSONResponse: A 422 error response containing validation details.
     """
+    errors = []
+    for err in exc.errors():
+        errors.append(
+            {
+                "loc": err["loc"],
+                "msg": err["msg"],
+                "type": err["type"],
+            }
+        )
     return JSONResponse(
         status_code=422,
-        content={"error": {"code": 422, "message": exc.errors()}},
+        content={"error": {"code": 422, "message": errors}},
     )
 
 

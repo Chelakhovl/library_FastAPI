@@ -19,6 +19,11 @@ if _V2:
         DEBUG: bool = os.getenv("DEBUG", "false").lower() == "true"
 
         DATABASE_URL: str = os.getenv("DATABASE_URL")
+        TEST_DB_URL: str = os.getenv(
+            "TEST_DB_URL",
+            "postgresql+asyncpg://postgres:postgres@localhost:5432/test_books_db",
+        )
+
         DB_POOL_SIZE: int = int(os.getenv("DB_POOL_SIZE", 5))
         DB_MAX_OVERFLOW: int = int(os.getenv("DB_MAX_OVERFLOW", 10))
         DB_POOL_TIMEOUT: int = int(os.getenv("DB_POOL_TIMEOUT", 30))
@@ -47,6 +52,11 @@ else:
             "DATABASE_URL",
             "postgresql+asyncpg://postgres:postgres@localhost:5432/books_db",
         )
+        TEST_DB_URL: str = os.getenv(
+            "TEST_DB_URL",
+            "postgresql+asyncpg://postgres:postgres@localhost:5432/test_books_db",
+        )
+
         DB_POOL_SIZE: int = int(os.getenv("DB_POOL_SIZE", 5))
         DB_MAX_OVERFLOW: int = int(os.getenv("DB_MAX_OVERFLOW", 10))
         DB_POOL_TIMEOUT: int = int(os.getenv("DB_POOL_TIMEOUT", 30))
